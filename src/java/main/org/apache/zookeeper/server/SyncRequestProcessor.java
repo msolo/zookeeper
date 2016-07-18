@@ -120,6 +120,7 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                 if (si != null) {
                     // track the number of records written to the log
                     if (zks.getZKDatabase().append(si)) {
+                        zks.incNumWrites();
                         logCount++;
                         if (logCount > (snapCount / 2 + randRoll)) {
                             randRoll = r.nextInt(snapCount/2);
@@ -175,6 +176,8 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
         if (toFlush.isEmpty())
             return;
 
+        LOG.debug("flushing " + toFlush.size() + " entries");
+        zks.incNumCommits();
         zks.getZKDatabase().commit();
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();

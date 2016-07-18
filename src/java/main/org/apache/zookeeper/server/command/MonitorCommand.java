@@ -62,6 +62,12 @@ public class MonitorCommand extends AbstractFourLetterCommand {
         print("ephemerals_count", zkdb.getDataTree().getEphemeralsCount());
         print("approximate_data_size", zkdb.getDataTree().approximateDataSize());
 
+        print("num_sessions_created", stats.getSessionsCreated());
+        print("num_sessions_expired", stats.getSessionsExpired());
+        print("num_sessions_closed", stats.getSessionsClosed());
+        print("num_writes", stats.getNumWrites());
+        print("num_commits", stats.getNumCommits());
+
         OSMXBean osMbean = new OSMXBean();
         if (osMbean != null && osMbean.getUnix() == true) {
             print("open_file_descriptor_count", osMbean.getOpenFileDescriptorCount());
