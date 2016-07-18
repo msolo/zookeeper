@@ -113,6 +113,12 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     static final private long superSecret = 0XB3415C00L;
 
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
+    private final AtomicLong sessionsCreated = new AtomicLong(0);
+    private final AtomicLong sessionsClosed = new AtomicLong(0);
+    private final AtomicLong sessionsExpired = new AtomicLong(0);
+    private final AtomicLong numWrites = new AtomicLong(0);
+    private final AtomicLong numCommits = new AtomicLong(0);
+
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // this data structure must be accessed under the outstandingChanges lock
     final HashMap<String, ChangeRecord> outstandingChangesForPath =
@@ -359,6 +365,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     private void close(long sessionId) {
         Request si = new Request(null, sessionId, 0, OpCode.closeSession, null, null);
         setLocalSessionFlag(si);
+        incSessionsClosed();
         submitRequest(si);
     }
 
@@ -386,6 +393,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         long sessionId = session.getSessionId();
         LOG.info("Expiring session 0x" + Long.toHexString(sessionId)
                 + ", timeout of " + session.getTimeout() + "ms exceeded");
+        incSessionsExpired();
         close(sessionId);
     }
 
@@ -578,6 +586,47 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         return requestsInProcess.get();
     }
 
+    public void incSessionsCreated() {
+        sessionsCreated.incrementAndGet();
+    }
+
+    public long getSessionsCreated() {
+        return sessionsCreated.get();
+    }
+
+    public void incSessionsClosed() {
+        sessionsClosed.incrementAndGet();
+    }
+
+    public long getSessionsClosed() {
+        return sessionsClosed.get();
+    }
+
+    public void incSessionsExpired() {
+        sessionsExpired.incrementAndGet();
+    }
+
+    public long getSessionsExpired() {
+        return sessionsExpired.get();
+    }
+
+    public void incNumWrites() {
+        numWrites.incrementAndGet();
+    }
+
+    public long getNumWrites() {
+        return numWrites.get();
+    }
+
+    public void incNumCommits() {
+        numCommits.incrementAndGet();
+    }
+
+    public long getNumCommits() {
+        return numCommits.get();
+    }
+
+
     /**
      * This structure is used to facilitate information sharing between PrepRP
      * and FinalRP.
@@ -637,6 +686,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         cnxn.setSessionId(sessionId);
         Request si = new Request(cnxn, sessionId, 0, OpCode.createSession, to, null);
         setLocalSessionFlag(si);
+        incSessionsCreated();
         submitRequest(si);
         return sessionId;
     }

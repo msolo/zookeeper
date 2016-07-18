@@ -42,6 +42,11 @@ public class ServerStats {
         public int getNumAliveConnections();
         public long getDataDirSize();
         public long getLogDirSize();
+        public long getSessionsCreated();
+        public long getSessionsExpired();
+        public long getSessionsClosed();
+        public long getNumCommits();
+        public long getNumWrites();
     }
     
     public ServerStats(Provider provider) {
@@ -99,6 +104,26 @@ public class ServerStats {
 
     public boolean isProviderNull() {
         return provider == null;
+    }
+
+    public long getSessionsCreated() {
+        return provider.getSessionsCreated();
+    }
+
+    public long getSessionsExpired() {
+        return provider.getSessionsExpired();
+    }
+
+    public long getSessionsClosed() {
+        return provider.getSessionsClosed();
+    }
+
+    public long getNumCommits() {
+        return provider.getNumCommits();
+    }
+
+    public long getNumWrites() {
+        return provider.getNumWrites();
     }
 
     @Override
