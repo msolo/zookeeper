@@ -120,6 +120,8 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                 if (si != null) {
                     // track the number of records written to the log
                     if (zks.getZKDatabase().append(si)) {
+                        // FIXME(msolo) This might be expensive. Can be handled in the
+                        // near incNumCommits as an atomic add.
                         zks.incNumWrites();
                         logCount++;
                         if (logCount > (snapCount / 2 + randRoll)) {
@@ -178,7 +180,13 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
 
         LOG.debug("flushing " + toFlush.size() + " entries");
         zks.incNumCommits();
+        long startSyncNs = System.nanoTime();
         zks.getZKDatabase().commit();
+        long syncElapsedNs = System.nanoTime() - startSyncNs;
+        if (syncElapsedNs > zks.getFsyncWarningThresholdNs()) {
+            zks.incSlowFsyncEvents();
+        }
+        zks.addFsyncTotalNs(syncElapsedNs)
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();
             if (nextProcessor != null) {

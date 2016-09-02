@@ -65,6 +65,9 @@ public class MonitorCommand extends AbstractFourLetterCommand {
         print("num_sessions_created", stats.getSessionsCreated());
         print("num_sessions_expired", stats.getSessionsExpired());
         print("num_sessions_closed", stats.getSessionsClosed());
+        print("num_throttle_events", stats.getNumThrottleEvents());
+        print("num_slow_fsync_events", stats.getNumSlowFsyncEvents());
+        print("fsync_total_ns", stats.getFsyncTotalNs());
         print("num_writes", stats.getNumWrites());
         print("num_commits", stats.getNumCommits());
 

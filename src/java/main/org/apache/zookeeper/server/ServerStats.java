@@ -47,6 +47,9 @@ public class ServerStats {
         public long getSessionsClosed();
         public long getNumCommits();
         public long getNumWrites();
+        public long getNumThrottleEvents();
+        public long getNumSlowFsyncEvents();
+        public long getFsyncTotalNs();
     }
     
     public ServerStats(Provider provider) {
@@ -124,6 +127,18 @@ public class ServerStats {
 
     public long getNumWrites() {
         return provider.getNumWrites();
+    }
+
+    public long getNumThrottleEvents() {
+        return provider.getNumThrottleEvents();
+    }
+
+    public long getNumSlowFsyncEvents() {
+        return provider.getNumSlowFsyncEvents();
+    }
+
+    public long getFsyncTotalNs() {
+        return provider.getFsyncTotalNs();
     }
 
     @Override
