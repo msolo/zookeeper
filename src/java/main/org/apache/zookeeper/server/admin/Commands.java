@@ -325,6 +325,15 @@ public class Commands {
             response.put("ephemerals_count", zkdb.getDataTree().getEphemeralsCount());
             response.put("approximate_data_size", zkdb.getDataTree().approximateDataSize());
 
+            response.put("num_sessions_created", stats.getSessionsCreated());
+            response.put("num_sessions_expired", stats.getSessionsExpired());
+            response.put("num_sessions_closed", stats.getSessionsClosed());
+            response.put("num_throttle_events", stats.getNumThrottleEvents());
+            response.put("num_slow_fsync_events", stats.getNumSlowFsyncEvents());
+            response.put("fsync_total_ns", stats.getFsyncTotalNs());
+            response.put("num_writes", stats.getNumWrites());
+            response.put("num_commits", stats.getNumCommits());
+
             OSMXBean osMbean = new OSMXBean();
             response.put("open_file_descriptor_count", osMbean.getOpenFileDescriptorCount());
             response.put("max_file_descriptor_count", osMbean.getMaxFileDescriptorCount());

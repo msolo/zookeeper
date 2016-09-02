@@ -387,6 +387,7 @@ public class NIOServerCnxn extends ServerCnxn {
             // check throttling
             int inProcess = zkServer.getInProcess();
             if (inProcess > outstandingLimit) {
+                zkServer.incNumThrottleEvents();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Throttling recv " + inProcess);
                 }

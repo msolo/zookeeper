@@ -608,6 +608,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                     zks.sessionTracker.setSessionClosing(request.sessionId);
                 }
 
+                zks.incSessionsClosed();
                 LOG.info("Processed session termination for sessionid: 0x"
                         + Long.toHexString(request.sessionId));
                 break;

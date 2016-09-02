@@ -118,6 +118,9 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     private final AtomicLong sessionsExpired = new AtomicLong(0);
     private final AtomicLong numWrites = new AtomicLong(0);
     private final AtomicLong numCommits = new AtomicLong(0);
+    private final AtomicLong numThrottleEvents = new AtomicLong(0);
+    private final AtomicLong numSlowFsyncEvents = new AtomicLong(0);
+    private final AtomicLong fsyncTotalNs = new AtomicLong(0);
 
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // this data structure must be accessed under the outstandingChanges lock
@@ -369,7 +372,6 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     private void close(long sessionId) {
         Request si = new Request(null, sessionId, 0, OpCode.closeSession, null, null);
         setLocalSessionFlag(si);
-        incSessionsClosed();
         submitRequest(si);
     }
 
@@ -644,6 +646,30 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         return numCommits.get();
     }
 
+    public void incNumThrottleEvents() {
+        numThrottleEvents.incrementAndGet();
+    }
+
+    public long getNumThrottleEvents() {
+        return numThrottleEvents.get();
+    }
+
+    public void incNumSlowFsyncEvents() {
+        numSlowFsyncEvents.incrementAndGet();
+    }
+
+    public long getNumSlowFsyncEvents() {
+        return numSlowFsyncEvents.get();
+    }
+
+    public void addFsyncTotalNs(long fsyncDurationNs) {
+        fsyncTotalNs.addAndGet(fsyncDurationNs);
+    }
+
+    public long getFsyncTotalNs() {
+        return fsyncTotalNs.get();
+    }
+
 
     /**
      * This structure is used to facilitate information sharing between PrepRP
@@ -704,7 +730,6 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         cnxn.setSessionId(sessionId);
         Request si = new Request(cnxn, sessionId, 0, OpCode.createSession, to, null);
         setLocalSessionFlag(si);
-        incSessionsCreated();
         submitRequest(si);
         return sessionId;
     }
@@ -774,6 +799,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             cnxn.sendBuffer(bb);
 
             if (valid) {
+                incSessionsCreated();
                 LOG.info("Established session 0x"
                         + Long.toHexString(cnxn.getSessionId())
                         + " with negotiated timeout " + cnxn.getSessionTimeout()
@@ -854,6 +880,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
     }
 
+
     public static int getSnapCount() {
         String sc = System.getProperty("zookeeper.snapCount");
         try {
@@ -868,6 +895,12 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         } catch (Exception e) {
             return 100000;
         }
+    }
+
+    public static long getFsyncWarningThresholdNs() {
+        return Long.getLong("zookeeper.fsync.warningthresholdms",
+                            Long.getLong("fsync.warningthresholdms", 1000)
+                            ) * 1000000;
     }
 
     public int getGlobalOutstandingLimit() {
@@ -1088,7 +1121,11 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public boolean shouldThrottle(long outStandingCount) {
         if (getGlobalOutstandingLimit() < getInProcess()) {
-            return outStandingCount > 0;
+            bool throttle = outStandingCount > 0;
+            if (throttle) {
+                incNumThrottleEvents();
+            }
+            return throttle;
         }
         return false;
     }
