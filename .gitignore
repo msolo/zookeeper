@@ -1,6 +1,9 @@
 # Java
 hs_err_pid*
 
+# Arc
+.arcconfig
+
 # Git
 *.orij
 *.rej
