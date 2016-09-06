@@ -183,10 +183,10 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
         long startSyncNs = System.nanoTime();
         zks.getZKDatabase().commit();
         long syncElapsedNs = System.nanoTime() - startSyncNs;
-        if (syncElapsedNs > zks.getFsyncWarningThresholdNs()) {
-            zks.incSlowFsyncEvents();
+        if (syncElapsedNs > ZooKeeperServer.getFsyncWarningThresholdNs()) {
+            zks.incNumSlowFsyncEvents();
         }
-        zks.addFsyncTotalNs(syncElapsedNs)
+        zks.addFsyncTotalNs(syncElapsedNs);
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();
             if (nextProcessor != null) {
