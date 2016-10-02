@@ -36,8 +36,6 @@ import java.util.zip.Checksum;
 import org.apache.jute.BinaryInputArchive;
 import org.apache.jute.InputArchive;
 import org.apache.jute.Record;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.ZooDefs.OpCode;
 import org.apache.zookeeper.server.persistence.FileHeader;
 import org.apache.zookeeper.server.persistence.FileTxnLog;
@@ -53,24 +51,29 @@ import org.apache.zookeeper.txn.TxnHeader;
 
 
 public class LogTailer {
-    private static final Logger LOG = LoggerFactory.getLogger(LogFormatter.class);
-
     public static String formatTxn(TxnHeader hdr, Record txn) {
+        int len = 0;
         switch (hdr.getType()) {
         case OpCode.createSession:
             // This isn't really an error txn; it just has the same
             // format. The error represents the timeout
             CreateSessionTxn cstxn = (CreateSessionTxn)txn;
-            return "timeOut:" + cstxn.getTimeOut();
+            return "timeOut:" + cstxn.getTimeOut() + "ms";
         case OpCode.closeSession:
             return "";
         case OpCode.create:
         case OpCode.create2:
             CreateTxn ctxn = (CreateTxn)txn;
-            return "path:" + ctxn.getPath() + " len:" + ctxn.getData().length;
+            if (ctxn.getData() != null) {
+                len = ctxn.getData().length;
+            }
+            return "path:" + ctxn.getPath() + " len:" + len;
         case OpCode.createContainer:
             CreateContainerTxn cctxn = (CreateContainerTxn)txn;
-            return "path:" + cctxn.getPath() + " len:" + cctxn.getData().length;
+            if (cctxn.getData() != null) {
+                len = cctxn.getData().length;
+            }
+            return "path:" + cctxn.getPath() + " len:" + len;
         case OpCode.delete:
         case OpCode.deleteContainer:
             DeleteTxn dtxn = (DeleteTxn)txn;
@@ -78,13 +81,17 @@ public class LogTailer {
         case OpCode.reconfig:
         case OpCode.setData:
             SetDataTxn stxn = (SetDataTxn)txn;
-            return "path:" + stxn.getPath() + " len:" + stxn.getData().length;
+            if (stxn.getData() != null) {
+                len = stxn.getData().length;
+            }
+            return "path:" + stxn.getPath() + " len:" + len;
         case OpCode.error:
             ErrorTxn etxn = (ErrorTxn)txn;
             return "err:" + etxn.getErr();
         case OpCode.multi:
             MultiTxn mtxn = (MultiTxn)txn;
-            return "len:" + mtxn.getTxns().size();
+            // TODO(msolo) Recusrively scan size.
+            return "num:" + mtxn.getTxns().size();
         default:
             return "unknown txn type" + hdr.getType();
         }
@@ -120,6 +127,9 @@ public class LogTailer {
         default:
             return "unknown txn type" + hdr.getType();
         }
+        if (data == null) {
+            return null;
+        }
         try {
             return new String(data, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -131,18 +141,21 @@ public class LogTailer {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        if (args.length != 1 && args.length != 2) {
-            System.err.println("USAGE: LogTailer [-v] <log_file_name>");
+        if (args.length < 1) {
+            System.err.println("USAGE: LogTailer [--verbose] [--show-data] [--follow] <log_file_name>");
             System.exit(2);
         }
         boolean verbose = false;
         boolean showData = false;
+        boolean follow = false;
         String fname = "";
         for (int i=0; i<args.length; i++) {
             if (args[i].equals("--verbose")) {
                 verbose = true;
             } else if (args[i].equals("--show-data")) {
                 showData = true;
+            } else if (args[i].equals("--follow")) {
+                follow = true;
             } else {
                 fname = args[i];
             }
@@ -161,7 +174,7 @@ public class LogTailer {
                 + fhdr.getDbid() + " txnlog format version "
                 + fhdr.getVersion());
 
-        DateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // Quoted "Z" to indicate UTC, no timezone offset
+        DateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         dateFmt.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         int count = 0;
@@ -178,6 +191,10 @@ public class LogTailer {
                 return;
             }
             if (bytes.length == 0) {
+                if (!follow) {
+                    System.out.println("EOF reached after " + count + " txns.");
+                    return;
+                }
                 // Since we preallocate, we define EOF to be an
                 // empty transaction
                 long sleepMs = 500;
@@ -204,8 +221,8 @@ public class LogTailer {
             Record txn = SerializeUtils.deserializeTxn(bytes, hdr);
             String txnStr = formatTxn(hdr, txn);
             String timestamp = dateFmt.format(new Date(hdr.getTime()));
-            long millis = hdr.getTime() % 1000;
-            System.out.println(timestamp + "." + millis + "Z"
+            // Quoted "Z" to indicate UTC, no timezone offset
+            System.out.println(timestamp + "Z"
                     + " session:0x"
                     + Long.toHexString(hdr.getClientId())
                     + " cxid:0x"
@@ -223,7 +240,7 @@ public class LogTailer {
                 System.out.println(txn);
             }
             if (logStream.readByte("EOR") != 'B') {
-                LOG.error("Last transaction was partial.");
+                System.err.println("Last transaction was partial.");
                 throw new EOFException("Last transaction was partial.");
             }
             count++;
