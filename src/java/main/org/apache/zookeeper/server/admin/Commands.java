@@ -326,6 +326,7 @@ public class Commands {
             response.put("approximate_data_size", zkdb.getDataTree().approximateDataSize());
 
             response.put("num_sessions_created", stats.getSessionsCreated());
+            response.put("num_sessions_reopened", stats.getSessionsReopened());
             response.put("num_sessions_expired", stats.getSessionsExpired());
             response.put("num_sessions_closed", stats.getSessionsClosed());
             response.put("num_throttle_events", stats.getNumThrottleEvents());

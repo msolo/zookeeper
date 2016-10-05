@@ -63,6 +63,7 @@ public class MonitorCommand extends AbstractFourLetterCommand {
         print("approximate_data_size", zkdb.getDataTree().approximateDataSize());
 
         print("num_sessions_created", stats.getSessionsCreated());
+        print("num_sessions_reopened", stats.getSessionsReopened());
         print("num_sessions_expired", stats.getSessionsExpired());
         print("num_sessions_closed", stats.getSessionsClosed());
         print("num_throttle_events", stats.getNumThrottleEvents());
