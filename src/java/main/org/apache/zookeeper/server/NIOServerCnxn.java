@@ -362,7 +362,7 @@ public class NIOServerCnxn extends ServerCnxn {
             // expecting close to log session closure
             close();
         } catch (EndOfStreamException e) {
-            LOG.warn(e.getMessage());
+            LOG.debug(e.getMessage());
             // expecting close to log session closure
             close();
         } catch (IOException e) {
@@ -605,7 +605,7 @@ public class NIOServerCnxn extends ServerCnxn {
             return;
         }
 
-        LOG.info("Closed socket connection for client "
+        LOG.debug("Closed socket connection for client "
                 + sock.socket().getRemoteSocketAddress()
                 + (sessionId != 0 ?
                         " which had sessionid 0x" + Long.toHexString(sessionId) :
