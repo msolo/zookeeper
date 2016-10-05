@@ -376,7 +376,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
 
     public void closeSession(long sessionId) {
-        LOG.info("Closing session 0x" + Long.toHexString(sessionId));
+        LOG.debug("Closing session 0x" + Long.toHexString(sessionId));
 
         // we do not want to wait for a session close. send it as soon as we
         // detect it!
@@ -397,7 +397,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public void expire(Session session) {
         long sessionId = session.getSessionId();
-        LOG.info("Expiring session 0x" + Long.toHexString(sessionId)
+        LOG.debug("Expiring session 0x" + Long.toHexString(sessionId)
                 + ", timeout of " + session.getTimeout() + "ms exceeded");
         incSessionsExpired();
         close(sessionId);
@@ -800,7 +800,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
             if (valid) {
                 incSessionsCreated();
-                LOG.info("Established session 0x"
+                LOG.debug("Established session 0x"
                         + Long.toHexString(cnxn.getSessionId())
                         + " with negotiated timeout " + cnxn.getSessionTimeout()
                         + " for client "
@@ -1100,12 +1100,12 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         cnxn.disableRecv();
         long sessionId = connReq.getSessionId();
         if (sessionId == 0) {
-            LOG.info("Client attempting to establish new session at "
+            LOG.debug("Client attempting to establish new session at "
                     + cnxn.getRemoteSocketAddress());
             createSession(cnxn, passwd, sessionTimeout);
         } else {
             long clientSessionId = connReq.getSessionId();
-            LOG.info("Client attempting to renew session 0x"
+            LOG.debug("Client attempting to renew session 0x"
                     + Long.toHexString(clientSessionId)
                     + " at " + cnxn.getRemoteSocketAddress());
             if (serverCnxnFactory != null) {

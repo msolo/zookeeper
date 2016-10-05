@@ -154,7 +154,7 @@ public abstract class QuorumZooKeeperServer extends ZooKeeperServer {
                 si.setLocalSession(true);
                 reqType = "local";
             }
-            LOG.info("Submitting " + reqType + " closeSession request"
+            LOG.debug("Submitting " + reqType + " closeSession request"
                     + " for session 0x" + Long.toHexString(si.sessionId));
             break;
         default:
