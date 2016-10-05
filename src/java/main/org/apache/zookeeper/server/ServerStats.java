@@ -43,6 +43,7 @@ public class ServerStats {
         public long getDataDirSize();
         public long getLogDirSize();
         public long getSessionsCreated();
+        public long getSessionsReopened();
         public long getSessionsExpired();
         public long getSessionsClosed();
         public long getNumCommits();
@@ -111,6 +112,10 @@ public class ServerStats {
 
     public long getSessionsCreated() {
         return provider.getSessionsCreated();
+    }
+
+    public long getSessionsReopened() {
+        return provider.getSessionsReopened();
     }
 
     public long getSessionsExpired() {

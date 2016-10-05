@@ -114,6 +114,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
     private final AtomicLong sessionsCreated = new AtomicLong(0);
+    private final AtomicLong sessionsReopened = new AtomicLong(0);
     private final AtomicLong sessionsClosed = new AtomicLong(0);
     private final AtomicLong sessionsExpired = new AtomicLong(0);
     private final AtomicLong numWrites = new AtomicLong(0);
@@ -596,6 +597,14 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         return sessionsCreated.get();
     }
 
+    public void incSessionsReopened() {
+        sessionsReopened.incrementAndGet();
+    }
+
+    public long getSessionsReopened() {
+        return sessionsReopened.get();
+    }
+
     public void incSessionsClosed() {
         sessionsClosed.incrementAndGet();
     }
@@ -741,6 +750,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             int sessionTimeout) throws IOException {
         if (checkPasswd(sessionId, passwd)) {
             revalidateSession(cnxn, sessionId, sessionTimeout);
+            incSessionsReopened();
         } else {
             LOG.warn("Incorrect password from " + cnxn.getRemoteSocketAddress()
                     + " for session 0x" + Long.toHexString(sessionId));
