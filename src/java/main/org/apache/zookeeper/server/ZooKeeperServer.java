@@ -114,9 +114,11 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
-    // this data structure must be accessed under the outstandingChanges lock
+    // These data structures must be accessed under the outstandingChanges lock
     final HashMap<String, ChangeRecord> outstandingChangesForPath =
         new HashMap<String, ChangeRecord>();
+    final HashMap<Long, List<ChangeRecord>> outstandingChangesForSession =
+        new HashMap<Long, List<ChangeRecord>>();
 
     protected ServerCnxnFactory serverCnxnFactory;
     protected ServerCnxnFactory secureServerCnxnFactory;
@@ -1183,5 +1185,36 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      */
     void registerServerShutdownHandler(ZooKeeperServerShutdownHandler zkShutdownHandler) {
         this.zkShutdownHandler = zkShutdownHandler;
+    }
+
+    void addOutstandingChangeRecordForSession(ChangeRecord c) {
+        if (c.stat == null || c.stat.getEphemeralOwner() == 0) {
+            return;
+        }
+        synchronized (outstandingChanges) {
+            Long sessionId = new Long(c.stat.getEphemeralOwner());
+            List<ChangeRecord> list = outstandingChangesForSession.get(sessionId);
+            if (list == null) {
+                list = new ArrayList<ChangeRecord>();
+                outstandingChangesForSession.put(sessionId, list);
+            }
+            list.add(c);
+        }
+    }
+
+    void removeOutstandingChangeRecordForSession(ChangeRecord c) {
+        if (c.stat == null || c.stat.getEphemeralOwner() == 0) {
+            return;
+        }
+        synchronized (outstandingChanges) {
+            Long sessionId = new Long(c.stat.getEphemeralOwner());
+            List<ChangeRecord> list = outstandingChangesForSession.get(sessionId);
+            if (list != null) {
+                list.remove(c);
+                if (list.size() == 0) {
+                  outstandingChangesForSession.remove(sessionId);
+                }
+            }
+        }
     }
 }
