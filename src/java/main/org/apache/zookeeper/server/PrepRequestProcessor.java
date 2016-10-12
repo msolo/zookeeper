@@ -187,6 +187,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         synchronized (zks.outstandingChanges) {
             zks.outstandingChanges.add(c);
             zks.outstandingChangesForPath.put(c.path, c);
+            zks.addOutstandingChangeRecordForSession(c);
         }
     }
 
@@ -255,6 +256,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                     // Remove all outstanding changes for paths of this multi.
                     // Previous records will be added back later.
                     zks.outstandingChangesForPath.remove(c.path);
+                    zks.removeOutstandingChangeRecordForSession(c);
                 } else {
                     break;
                 }
@@ -277,6 +279,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
 
                 // add previously existing records back.
                 zks.outstandingChangesForPath.put(c.path, c);
+                zks.addOutstandingChangeRecordForSession(c);
             }
         }
     }
@@ -629,12 +632,18 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 Set<String> es = zks.getZKDatabase()
                         .getEphemerals(request.sessionId);
                 synchronized (zks.outstandingChanges) {
-                    for (ChangeRecord c : zks.outstandingChanges) {
-                        if (c.stat == null) {
-                            // Doing a delete
-                            es.remove(c.path);
-                        } else if (c.stat.getEphemeralOwner() == request.sessionId) {
+                    List<ChangeRecord> list = zks.outstandingChangesForSession.get(new Long(request.sessionId));
+                    if (list != null) {
+                        for (ChangeRecord c : list) {
                             es.add(c.path);
+                        }
+                    }
+                    for (String epath : es) {
+                        // There may be many outstanding changes for a path, but as long as the last
+                        // one is a delete, don't enqueue another.
+                        ChangeRecord lastCr = zks.outstandingChangesForPath.get(epath);
+                        if (lastCr != null && lastCr.stat == null) {
+                            es.remove(epath);
                         }
                     }
                     for (String path2Delete : es) {
