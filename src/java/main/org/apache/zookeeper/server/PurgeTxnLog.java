@@ -156,7 +156,9 @@ public class PurgeTxnLog {
             LOG.info(msg);
             System.out.println(msg);
             if(!f.delete()){
-                System.err.println("Failed to remove "+f.getPath());
+                String removeMsg = "Failed removing file: " + f.getPath();
+                System.err.println(removeMsg);
+                LOG.warn(removeMsg);
             }
         }
 
