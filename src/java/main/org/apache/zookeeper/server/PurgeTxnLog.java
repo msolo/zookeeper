@@ -29,6 +29,9 @@ import java.util.List;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.apache.zookeeper.server.persistence.Util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * this class is used to clean up the 
  * snapshot and data log dir's. This is usually
@@ -40,6 +43,8 @@ import org.apache.zookeeper.server.persistence.Util;
 public class PurgeTxnLog {
 
     private static final String COUNT_ERR_MSG = "count should be greater than or equal to 3";
+
+    private static final Logger LOG = LoggerFactory.getLogger(PurgeTxnLog.class);
 
     static void printUsage(){
         System.out.println("Usage:");
@@ -108,11 +113,14 @@ public class PurgeTxnLog {
         // remove the old files
         for(File f: files)
         {
-            System.out.println("Removing file: "+
-                DateFormat.getDateTimeInstance().format(f.lastModified())+
-                "\t"+f.getPath());
+            String msg = "Removing file: " + f.getPath() + " last modified: " +
+                DateFormat.getDateTimeInstance().format(f.lastModified());
+            System.out.println(msg);
+            LOG.info(msg);
             if(!f.delete()){
-                System.err.println("Failed to remove "+f.getPath());
+                msg = "Failed removing file: " + f.getPath();
+                System.err.println(msg);
+                LOG.warn(msg);
             }
         }
 
