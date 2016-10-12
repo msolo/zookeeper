@@ -589,6 +589,12 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         return requestsInProcess.get();
     }
 
+    public long getOutstandingChanges() {
+      synchronized(outstandingChanges) {
+        return outstandingChanges.size();
+      }
+    }
+
     public void incSessionsCreated() {
         sessionsCreated.incrementAndGet();
     }

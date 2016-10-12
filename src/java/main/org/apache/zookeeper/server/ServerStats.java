@@ -36,6 +36,7 @@ public class ServerStats {
     private final Provider provider;
 
     public interface Provider {
+        public long getOutstandingChanges();
         public long getOutstandingRequests();
         public long getLastProcessedZxid();
         public String getState();
@@ -71,6 +72,10 @@ public class ServerStats {
 
     synchronized public long getMaxLatency() {
         return maxLatency;
+    }
+
+    public long getOutstandingChanges() {
+        return provider.getOutstandingChanges();
     }
 
     public long getOutstandingRequests() {

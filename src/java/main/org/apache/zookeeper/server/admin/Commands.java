@@ -316,6 +316,7 @@ public class Commands {
             response.put("packets_sent", stats.getPacketsSent());
             response.put("num_alive_connections", stats.getNumAliveClientConnections());
 
+            response.put("outstanding_changes", stats.getOutstandingChanges());
             response.put("outstanding_requests", stats.getOutstandingRequests());
 
             response.put("server_state", stats.getServerState());
