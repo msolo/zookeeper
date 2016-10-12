@@ -53,6 +53,7 @@ public class MonitorCommand extends AbstractFourLetterCommand {
         print("packets_sent", stats.getPacketsSent());
         print("num_alive_connections", stats.getNumAliveClientConnections());
 
+        print("outstanding_changes", stats.getOutstandingChanges());
         print("outstanding_requests", stats.getOutstandingRequests());
 
         print("server_state", stats.getServerState());
