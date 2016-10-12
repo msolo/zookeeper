@@ -119,6 +119,7 @@ public class FinalRequestProcessor implements RequestProcessor {
                     if (zks.outstandingChangesForPath.get(cr.path) == cr) {
                         zks.outstandingChangesForPath.remove(cr.path);
                     }
+                    zks.removeOutstandingChangeRecordForSession(cr);
                 }
             }
 
