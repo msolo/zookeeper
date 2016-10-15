@@ -1295,10 +1295,10 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             return;
         }
         synchronized (outstandingChanges) {
-            Long sessionId = new Long(c.stat.getEphemeralOwner());
+            long sessionId = c.stat.getEphemeralOwner();
             List<ChangeRecord> list = outstandingChangesForSession.get(sessionId);
             if (list == null) {
-                list = new ArrayList<ChangeRecord>();
+                list = new ArrayList<>();
                 outstandingChangesForSession.put(sessionId, list);
             }
             list.add(c);
@@ -1310,7 +1310,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             return;
         }
         synchronized (outstandingChanges) {
-            Long sessionId = new Long(c.stat.getEphemeralOwner());
+            long sessionId = c.stat.getEphemeralOwner();
             List<ChangeRecord> list = outstandingChangesForSession.get(sessionId);
             if (list != null) {
                 list.remove(c);
