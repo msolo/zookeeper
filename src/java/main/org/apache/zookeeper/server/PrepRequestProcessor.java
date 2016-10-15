@@ -72,6 +72,7 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -596,18 +597,19 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 Set<String> es = zks.getZKDatabase()
                         .getEphemerals(request.sessionId);
                 synchronized (zks.outstandingChanges) {
-                    List<ChangeRecord> list = zks.outstandingChangesForSession.get(new Long(request.sessionId));
+                    List<ChangeRecord> list = zks.outstandingChangesForSession.get(request.sessionId);
                     if (list != null) {
                         for (ChangeRecord c : list) {
                             es.add(c.path);
                         }
                     }
-                    for (String epath : es) {
+                    for (Iterator<String> it = es.iterator(); it.hasNext(); ) {
+                        String epath = it.next();
                         // There may be many outstanding changes for a path, but as long as the last
                         // one is a delete, don't enqueue another.
                         ChangeRecord lastCr = zks.outstandingChangesForPath.get(epath);
                         if (lastCr != null && lastCr.stat == null) {
-                            es.remove(epath);
+                            it.remove();
                         }
                     }
                     for (String path2Delete : es) {
