@@ -320,11 +320,14 @@ public class Commands {
             response.put("outstanding_requests", stats.getOutstandingRequests());
 
             response.put("server_state", stats.getServerState());
+            response.put("last_processed_zxid", stats.getLastProcessedZxid());
             response.put("znode_count", zkdb.getNodeCount());
 
             response.put("watch_count", zkdb.getDataTree().getWatchCount());
             response.put("ephemerals_count", zkdb.getDataTree().getEphemeralsCount());
             response.put("approximate_data_size", zkdb.getDataTree().approximateDataSize());
+            response.put("datadir_size", stats.getDataDirSize());
+            response.put("logdir_size", stats.getLogDirSize());
 
             response.put("num_sessions_created", stats.getSessionsCreated());
             response.put("num_sessions_reopened", stats.getSessionsReopened());
@@ -335,6 +338,8 @@ public class Commands {
             response.put("fsync_total_ns", stats.getFsyncTotalNs());
             response.put("num_writes", stats.getNumWrites());
             response.put("num_commits", stats.getNumCommits());
+
+            response.put("read_only", zkServer instanceof ReadOnlyZooKeeperServer);
 
             OSMXBean osMbean = new OSMXBean();
             response.put("open_file_descriptor_count", osMbean.getOpenFileDescriptorCount());
