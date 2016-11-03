@@ -72,6 +72,9 @@ public class MonitorCommand extends AbstractFourLetterCommand {
         print("fsync_total_ns", stats.getFsyncTotalNs());
         print("num_writes", stats.getNumWrites());
         print("num_commits", stats.getNumCommits());
+        print("num_ping_request", stats.getPingRequests());
+        print("num_read_request", stats.getReadRequests());
+        print("num_write_request", stats.getWriteRequests());
 
         OSMXBean osMbean = new OSMXBean();
         if (osMbean != null && osMbean.getUnix() == true) {

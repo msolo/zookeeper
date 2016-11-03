@@ -52,12 +52,15 @@ public class ServerStats {
         public long getNumThrottleEvents();
         public long getNumSlowFsyncEvents();
         public long getFsyncTotalNs();
+        public long getPingRequests();
+        public long getReadRequests();
+        public long getWriteRequests();
     }
-    
+
     public ServerStats(Provider provider) {
         this.provider = provider;
     }
-    
+
     // getters
     synchronized public long getMinLatency() {
         return minLatency == Long.MAX_VALUE ? 0 : minLatency;
@@ -81,7 +84,7 @@ public class ServerStats {
     public long getOutstandingRequests() {
         return provider.getOutstandingRequests();
     }
-    
+
     public long getLastProcessedZxid(){
         return provider.getLastProcessedZxid();
     }
@@ -93,7 +96,7 @@ public class ServerStats {
     public long getLogDirSize() {
         return provider.getLogDirSize();
     }
-    
+
     synchronized public long getPacketsReceived() {
         return packetsReceived;
     }
@@ -105,7 +108,7 @@ public class ServerStats {
     public String getServerState() {
         return provider.getState();
     }
-    
+
     /** The number of client connections alive to this server */
     public int getNumAliveClientConnections() {
     	return provider.getNumAliveConnections();
@@ -150,6 +153,19 @@ public class ServerStats {
     public long getFsyncTotalNs() {
         return provider.getFsyncTotalNs();
     }
+
+    public long getPingRequests() {
+        return provider.getPingRequests();
+    }
+
+    public long getReadRequests() {
+        return provider.getReadRequests();
+    }
+
+    public long getWriteRequests() {
+        return provider.getWriteRequests();
+    }
+
 
     @Override
     public String toString(){

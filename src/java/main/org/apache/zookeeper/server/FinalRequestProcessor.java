@@ -106,6 +106,9 @@ public class FinalRequestProcessor implements RequestProcessor {
             // request.hdr is set for write requests, which are the only ones
             // that add to outstandingChanges.
             if (request.getHdr() != null) {
+                // Increment writeRequests count.
+                zks.incWriteRequests();
+
                 TxnHeader hdr = request.getHdr();
                 Record txn = request.getTxn();
                 long zxid = hdr.getZxid();
@@ -120,6 +123,14 @@ public class FinalRequestProcessor implements RequestProcessor {
                         zks.outstandingChangesForPath.remove(cr.path);
                     }
                     zks.removeOutstandingChangeRecordForSession(cr);
+                }
+            } else {
+                // Request header is null this means this is either
+                // a ping request or a read request.
+                if (request.type == OpCode.ping) {
+                        zks.incPingRequests();
+                } else {
+                        zks.incReadRequests();
                 }
             }
 

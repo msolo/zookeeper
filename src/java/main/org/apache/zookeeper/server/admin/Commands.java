@@ -341,6 +341,10 @@ public class Commands {
 
             response.put("read_only", zkServer instanceof ReadOnlyZooKeeperServer);
 
+            response.put("num_ping_rquests", stats.getPingRequests());
+            response.put("num_read_rquests", stats.getReadRequests());
+            response.put("num_write_rquests", stats.getWriteRequests());
+
             OSMXBean osMbean = new OSMXBean();
             response.put("open_file_descriptor_count", osMbean.getOpenFileDescriptorCount());
             response.put("max_file_descriptor_count", osMbean.getMaxFileDescriptorCount());

@@ -122,6 +122,9 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     private final AtomicLong numThrottleEvents = new AtomicLong(0);
     private final AtomicLong numSlowFsyncEvents = new AtomicLong(0);
     private final AtomicLong fsyncTotalNs = new AtomicLong(0);
+    private final AtomicLong pingRequests = new AtomicLong(0);
+    private final AtomicLong readRequests = new AtomicLong(0);
+    private final AtomicLong writeRequests = new AtomicLong(0);
 
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // These data structures must be accessed under the outstandingChanges lock
@@ -270,21 +273,21 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      */
     public void loadData() throws IOException, InterruptedException {
         /*
-         * When a new leader starts executing Leader#lead, it 
+         * When a new leader starts executing Leader#lead, it
          * invokes this method. The database, however, has been
          * initialized before running leader election so that
          * the server could pick its zxid for its initial vote.
          * It does it by invoking QuorumPeer#getLastLoggedZxid.
          * Consequently, we don't need to initialize it once more
-         * and avoid the penalty of loading it a second time. Not 
+         * and avoid the penalty of loading it a second time. Not
          * reloading it is particularly important for applications
          * that host a large database.
-         * 
+         *
          * The following if block checks whether the database has
          * been initialized or not. Note that this method is
-         * invoked by at least one other method: 
+         * invoked by at least one other method:
          * ZooKeeperServer#startdata.
-         *  
+         *
          * See ZOOKEEPER-1642 for more detail.
          */
         if(zkDb.isInitialized()){
@@ -293,7 +296,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         else {
             setZxid(zkDb.loadDataBase());
         }
-        
+
         // Clean up dead sessions
         LinkedList<Long> deadSessions = new LinkedList<Long>();
         for (Long session : zkDb.getSessions()) {
@@ -359,7 +362,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     public SessionTracker getSessionTracker() {
         return sessionTracker;
     }
-    
+
     long getNextZxid() {
         return hzxid.incrementAndGet();
     }
@@ -667,6 +670,25 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public long getFsyncTotalNs() {
         return fsyncTotalNs.get();
+    }
+
+    public void incPingRequests() {
+        pingRequests.incrementAndGet();
+    }
+    public long getPingRequests() {
+        return pingRequests.get();
+    }
+    public void incReadRequests() {
+        readRequests.incrementAndGet();
+    }
+    public long getReadRequests() {
+        return readRequests.get();
+    }
+    public void incWriteRequests() {
+        writeRequests.incrementAndGet();
+    }
+    public long getWriteRequests() {
+        return writeRequests.get();
     }
 
 
