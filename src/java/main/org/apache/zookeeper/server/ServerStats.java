@@ -56,11 +56,11 @@ public class ServerStats {
         public long getReadRequests();
         public long getWriteRequests();
     }
-
+    
     public ServerStats(Provider provider) {
         this.provider = provider;
     }
-
+    
     // getters
     synchronized public long getMinLatency() {
         return minLatency == Long.MAX_VALUE ? 0 : minLatency;
@@ -84,7 +84,7 @@ public class ServerStats {
     public long getOutstandingRequests() {
         return provider.getOutstandingRequests();
     }
-
+    
     public long getLastProcessedZxid(){
         return provider.getLastProcessedZxid();
     }
@@ -96,7 +96,7 @@ public class ServerStats {
     public long getLogDirSize() {
         return provider.getLogDirSize();
     }
-
+    
     synchronized public long getPacketsReceived() {
         return packetsReceived;
     }
@@ -108,7 +108,7 @@ public class ServerStats {
     public String getServerState() {
         return provider.getState();
     }
-
+    
     /** The number of client connections alive to this server */
     public int getNumAliveClientConnections() {
     	return provider.getNumAliveConnections();

@@ -106,7 +106,7 @@ public class FinalRequestProcessor implements RequestProcessor {
             // request.hdr is set for write requests, which are the only ones
             // that add to outstandingChanges.
             if (request.getHdr() != null) {
-                // Increment writeRequests count.
+
                 zks.incWriteRequests();
 
                 TxnHeader hdr = request.getHdr();
