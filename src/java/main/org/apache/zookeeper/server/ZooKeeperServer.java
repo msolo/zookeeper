@@ -287,7 +287,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
          * been initialized or not. Note that this method is
          * invoked by at least one other method: 
          * ZooKeeperServer#startdata.
-         * 
+         *  
          * See ZOOKEEPER-1642 for more detail.
          */
         if(zkDb.isInitialized()){
