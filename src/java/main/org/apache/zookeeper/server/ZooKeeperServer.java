@@ -122,6 +122,9 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     private final AtomicLong numThrottleEvents = new AtomicLong(0);
     private final AtomicLong numSlowFsyncEvents = new AtomicLong(0);
     private final AtomicLong fsyncTotalNs = new AtomicLong(0);
+    private final AtomicLong pingRequests = new AtomicLong(0);
+    private final AtomicLong readRequests = new AtomicLong(0);
+    private final AtomicLong writeRequests = new AtomicLong(0);
 
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // These data structures must be accessed under the outstandingChanges lock
@@ -667,6 +670,25 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public long getFsyncTotalNs() {
         return fsyncTotalNs.get();
+    }
+
+    public void incPingRequests() {
+        pingRequests.incrementAndGet();
+    }
+    public long getPingRequests() {
+        return pingRequests.get();
+    }
+    public void incReadRequests() {
+        readRequests.incrementAndGet();
+    }
+    public long getReadRequests() {
+        return readRequests.get();
+    }
+    public void incWriteRequests() {
+        writeRequests.incrementAndGet();
+    }
+    public long getWriteRequests() {
+        return writeRequests.get();
     }
 
 

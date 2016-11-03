@@ -52,6 +52,9 @@ public class ServerStats {
         public long getNumThrottleEvents();
         public long getNumSlowFsyncEvents();
         public long getFsyncTotalNs();
+        public long getPingRequests();
+        public long getReadRequests();
+        public long getWriteRequests();
     }
     
     public ServerStats(Provider provider) {
@@ -150,6 +153,19 @@ public class ServerStats {
     public long getFsyncTotalNs() {
         return provider.getFsyncTotalNs();
     }
+
+    public long getPingRequests() {
+        return provider.getPingRequests();
+    }
+
+    public long getReadRequests() {
+        return provider.getReadRequests();
+    }
+
+    public long getWriteRequests() {
+        return provider.getWriteRequests();
+    }
+
 
     @Override
     public String toString(){
