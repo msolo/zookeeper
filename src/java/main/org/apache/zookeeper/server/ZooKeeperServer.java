@@ -546,7 +546,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
 
     public void shutdown() {
-        shutdown(false);
+        // [dbx] rollback to false when ZOOKEEPER-2845 is fixed.
+        shutdown(true);
     }
 
     /**
