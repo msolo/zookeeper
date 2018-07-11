@@ -29,6 +29,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -317,7 +319,7 @@ public class QuorumCnxManager {
      */
     public void testInitiateConnection(long sid) throws Exception {
         LOG.debug("Opening channel to server " + sid);
-        Socket sock = new Socket();
+        Socket sock = SocketChannel.open().socket();
         setSockOpts(sock);
         sock.connect(self.getVotingView().get(sid).electionAddr, cnxTO);
         initiateConnection(sock, sid);
@@ -394,7 +396,7 @@ public class QuorumCnxManager {
         try {
             // Use BufferedOutputStream to reduce the number of IP packets. This is
             // important for x-DC scenarios.
-            BufferedOutputStream buf = new BufferedOutputStream(sock.getOutputStream());
+            BufferedOutputStream buf = new BufferedOutputStream(newOutputStream(sock));
             dout = new DataOutputStream(buf);
 
             // Sending id and challenge
@@ -408,7 +410,7 @@ public class QuorumCnxManager {
             dout.flush();
 
             din = new DataInputStream(
-                    new BufferedInputStream(sock.getInputStream()));
+                    new BufferedInputStream(new SocketInputStream(sock, self.tickTime * self.initLimit)));
         } catch (IOException e) {
             LOG.warn("Ignoring exception reading or writing challenge: ", e);
             closeSocket(sock);
@@ -462,7 +464,7 @@ public class QuorumCnxManager {
         DataInputStream din = null;
         try {
             din = new DataInputStream(
-                    new BufferedInputStream(sock.getInputStream()));
+                    new BufferedInputStream(new SocketInputStream(sock, self.tickTime * self.initLimit)));
 
             handleConnection(sock, din);
         } catch (IOException e) {
@@ -633,7 +635,7 @@ public class QuorumCnxManager {
         Socket sock = null;
         try {
             LOG.debug("Opening channel to server " + sid);
-            sock = new Socket();
+            sock = SocketChannel.open().socket();
             setSockOpts(sock);
             sock.connect(electionAddr, cnxTO);
             LOG.debug("Connected to server " + sid);
@@ -778,6 +780,10 @@ public class QuorumCnxManager {
         sock.setSoTimeout(self.tickTime * self.syncLimit);
     }
 
+    private SocketOutputStream newOutputStream(Socket sock) throws IOException {
+        return new SocketOutputStream(sock, self.tickTime * self.initLimit);
+    }
+
     /**
      * Helper method to close a socket.
      * 
@@ -840,7 +846,8 @@ public class QuorumCnxManager {
             Socket client = null;
             while((!shutdown) && (numRetries < 3)){
                 try {
-                    ss = new ServerSocket();
+                    ServerSocketChannel ssc = ServerSocketChannel.open();
+                    ss = ssc.socket();
                     ss.setReuseAddress(true);
                     if (self.getQuorumListenOnAllIPs()) {
                         int port = self.getElectionAddress().getPort();
@@ -950,7 +957,7 @@ public class QuorumCnxManager {
             this.sock = sock;
             recvWorker = null;
             try {
-                dout = new DataOutputStream(sock.getOutputStream());
+                dout = new DataOutputStream(newOutputStream(sock));
             } catch (IOException e) {
                 LOG.error("Unable to access socket output stream", e);
                 closeSocket(sock);
