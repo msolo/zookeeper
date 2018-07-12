@@ -28,6 +28,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -240,7 +241,7 @@ public class Learner {
      */
     protected void connectToLeader(InetSocketAddress addr, String hostname)
     throws IOException, ConnectException, InterruptedException {
-        sock = new Socket();        
+        sock = SocketChannel.open().socket();
         sock.setSoTimeout(self.tickTime * self.initLimit);
 
         int initLimitTime = self.tickTime * self.initLimit;
@@ -276,7 +277,7 @@ public class Learner {
                     LOG.warn("Unexpected exception, tries=" + tries +
                             ", remaining init limit=" + remainingInitLimitTime +
                             ", connecting to " + addr,e);
-                    sock = new Socket();
+                    sock = SocketChannel.open().socket();
                     sock.setSoTimeout(self.tickTime * self.initLimit);
                 }
             }
@@ -286,8 +287,9 @@ public class Learner {
         self.authLearner.authenticate(sock, hostname);
 
         leaderIs = BinaryInputArchive.getArchive(new BufferedInputStream(
-                sock.getInputStream()));
-        bufferedOutput = new BufferedOutputStream(sock.getOutputStream());
+                new SocketInputStream(sock, self.tickTime * self.initLimit)));
+        bufferedOutput = new BufferedOutputStream(new SocketOutputStream(
+                sock, self.tickTime * self.initLimit));
         leaderOs = BinaryOutputArchive.getArchive(bufferedOutput);
     }   
     

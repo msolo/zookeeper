@@ -367,7 +367,8 @@ public class LearnerHandler extends ZooKeeperThread {
                     + leader.self.initLimit + leader.self.syncLimit;
 
             ia = BinaryInputArchive.getArchive(bufferedInput);
-            bufferedOutput = new BufferedOutputStream(sock.getOutputStream());
+            bufferedOutput = new BufferedOutputStream(new SocketOutputStream(
+                sock, leader.self.tickTime * leader.self.initLimit));
             oa = BinaryOutputArchive.getArchive(bufferedOutput);
 
             QuorumPacket qp = new QuorumPacket();

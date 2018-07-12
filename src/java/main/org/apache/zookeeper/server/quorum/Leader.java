@@ -25,8 +25,10 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -222,10 +224,10 @@ public class Leader {
     Leader(QuorumPeer self,LeaderZooKeeperServer zk) throws IOException {
         this.self = self;
         try {
+            ServerSocketChannel ssc = ServerSocketChannel.open();
+            ss = ssc.socket();
             if (self.getQuorumListenOnAllIPs()) {
-                ss = new ServerSocket(self.getQuorumAddress().getPort());
-            } else {
-                ss = new ServerSocket();
+                ss.bind(new InetSocketAddress(self.getQuorumAddress().getPort()));
             }
             ss.setReuseAddress(true);
             if (!self.getQuorumListenOnAllIPs()) {
@@ -371,7 +373,7 @@ public class Leader {
                         s.setTcpNoDelay(nodelay);
 
                         BufferedInputStream is = new BufferedInputStream(
-                                s.getInputStream());
+                                new SocketInputStream(s, self.tickTime * self.initLimit));
                         LearnerHandler fh = new LearnerHandler(s, is, Leader.this);
                         fh.start();
                     } catch (SocketException e) {
